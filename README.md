@@ -20,6 +20,13 @@
 
 ## Evaluation
 
+### Activity
+  - Your activity will be graded through the semester.
+  - If you are active, participate in answering questions and problem-solving you can be awarded 100% for activity, weight depending on the difficulty
+  - If you find a mistake in the teachers code or my lectures you can be awarded as well, weight depending on the difficulty
+  - TODO: ask for ??Uni simulation??
+  - **Disturbing the class can lead to a reprimand! (poznámka)**
+
 ### Homeworks
   - A big part of your evaluation will be homeworks
 #### Compulsory homeworks
@@ -32,7 +39,7 @@
   - These will be given graded me in the lessons
 
 ### Exams
-  - There will be at two to three exams through the year
+  - There will be two to three exams through the year
 
 #### Python Exam
   - Will be mainly about basic programing and algorithms
