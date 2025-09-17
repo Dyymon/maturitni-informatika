@@ -19,7 +19,7 @@
   - You can also install additional shell based apps such as iPython to access Python shell in terminal or CMD (tested on linux and on Windows with Anaconda enviroment manager)
 
 ## Evaluation
-
+  - Your evaluation through the year will be based on your activity in the classes and outside of them, on zour homeworks and few exams through the year
 ### Activity
   - Your activity will be graded through the semester.
   - If you are active, participate in answering questions and problem-solving you can be awarded 100% for activity, weight depending on the difficulty
