@@ -5,6 +5,7 @@
   - The function is to draw a house of ot simple characters
   - Incorrect inputs are already handled via asserts
   - examples bellow
+  - **DEADLINE: 24.9 16:00**
 
 ## example 1
 ```
