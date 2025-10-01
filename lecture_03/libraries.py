@@ -27,6 +27,7 @@ print("passed time: ", time.time() - curr_time)
 
 # these libraries might not be sufficient for our needs and sometimes we have to look elsewhere
 # our option is to install additional libraries using pip
+# on how to install these libraries take a look onto lecture_03/README.md
 
 # numpy is one of the most used libraries in python, it has many numerical and matrix operations
 # here we can also see a way how we can additionally shorten the import name by adding as np
