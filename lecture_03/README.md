@@ -13,5 +13,5 @@ py -m pip --version  # windows
 ## Installing Library
 ```
 python -m pip install numpy # installing numpy library linux and macOS
-py -m pip install numpy # installing numpy linux and macOS
+py -m pip install numpy # installing windows
 ```
