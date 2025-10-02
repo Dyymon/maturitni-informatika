@@ -60,3 +60,10 @@ plt.ylabel("sin(x)")
 plt.legend()
 plt.grid(True)
 plt.show()
+
+# you can of course import just a singular function / functions from library
+from time import time
+from math import sin, tan
+
+print(time())
+print(sin(0), tan(0))
