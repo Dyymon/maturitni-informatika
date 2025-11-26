@@ -1,5 +1,5 @@
 
-def find_minimum(numbers: list[int]) -> float:
+def find_minimum(numbers: list[int]) -> int:
     """
     Find the smallest number in the given list of numbers.
     :param numbers: list of numbers
@@ -10,7 +10,7 @@ def find_minimum(numbers: list[int]) -> float:
     return minimum
 
 
-def find_maximum(numbers: list[int]) -> float:
+def find_maximum(numbers: list[int]) -> int:
     """
     Find the highest number in the given list of numbers.
     :param numbers: list of numbers
@@ -20,7 +20,7 @@ def find_maximum(numbers: list[int]) -> float:
 
     return maximum
 
-def sort_numbers(numbers: list) -> list:
+def sort_numbers(numbers: list[int]) -> list[int]:
     """
     sort a list of numbers from lowest to highest
     :param numbers: list of numbers to sort
