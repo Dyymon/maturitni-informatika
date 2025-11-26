@@ -1,4 +1,4 @@
-# compulsory Homework 1
+# compulsory Homework 2
   - In this homework your task is to complete the functions `find_minimum()`, `find_maximum()` and `sort_numbers()`
   - As a bonus implementing a harder sorts, such as heap sort or quick sort or even more complex sorts such as hybrid sorts like tim sort will be rewarded with additional positive grade.
   - Additional bonus, your implementations of sorts will be benchmedmarked against each other, the three fastest will get additional positive grade.
