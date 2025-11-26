@@ -14,7 +14,7 @@ class TestMatrixOperations(unittest.TestCase):
         numbers = [random.randint(1, 100) for _ in range(length)]
         python_solution = min(numbers)
         your_solution = find_minimum(numbers)
-        self.assertTrue((python_solution, your_solution), f"incorect min implementation")
+        self.assertTrue((python_solution == your_solution), f"incorect min implementation")
 
     def test_max(self):
         """
@@ -24,7 +24,7 @@ class TestMatrixOperations(unittest.TestCase):
         numbers = [random.randint(1, 100) for _ in range(length)]
         python_solution = max(numbers)
         your_solution = find_maximum(numbers)
-        self.assertTrue((python_solution, your_solution),
+        self.assertTrue((python_solution == your_solution),
                         f"incorect max implementation")
 
 
@@ -36,7 +36,7 @@ class TestMatrixOperations(unittest.TestCase):
         numbers = [random.randint(1, 100) for _ in range(length)]
         python_solution = sorted(numbers)
         your_solution = sort_numbers(numbers)
-        self.assertTrue((python_solution, your_solution),
+        self.assertTrue((python_solution == your_solution),
                         f"incorect sort implementation")
 
 
