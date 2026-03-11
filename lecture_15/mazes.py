@@ -152,7 +152,7 @@ maze_20x20_2 = np.array([
 [1,1,1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,0]
 ])
 
-grid = np.array(maze_20x20_2)
+grid = np.array(maze_20x20_1)
 start = (0,0)
 goal = (4,4)
 

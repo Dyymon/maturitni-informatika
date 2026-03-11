@@ -134,4 +134,5 @@ if __name__ == "__main__":
     mp.show()
 
     path = bfs_grid_live(grid, start, goal, mp, pause=0.02)
+
     print("Path length:" if path is not None else "No path.", None if path is None else len(path))
