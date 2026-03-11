@@ -152,9 +152,10 @@ maze_20x20_2 = np.array([
 [1,1,1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,0]
 ])
 
-grid = np.array(maze_20x20_1)
-start = (0,0)
-goal = (4,4)
+if __name__ == '__main__':
+    grid = np.array(maze_20x20_1)
+    start = (0,0)
+    goal = (4,4)
 
-mp = MazePlotter(grid, start, goal, live=False)
-mp.show()
+    mp = MazePlotter(grid, start, goal, live=False)
+    mp.show()
