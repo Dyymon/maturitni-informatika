@@ -3,8 +3,8 @@ from typing import Tuple
 
 
 class PathChecker:
-    def __init__(self, maze: np.ndarray):
-        self.grid = np.asarray(maze)
+    def __init__(self, grid: np.ndarray):
+        self.grid = np.asarray(grid)
         if self.grid.ndim != 2:
             raise ValueError("maze must be a 2D array.")
 
