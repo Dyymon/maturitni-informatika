@@ -1,18 +1,29 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
+from matplotlib.patches import Rectangle
+from matplotlib.collections import PatchCollection
+
 
 class MazePlotter:
     """
-    Grid maze plotter.
+    Grid maze plotter using matrix indexing convention.
 
-    grid: (N, N) np.array, 0 = free, 1 = obstacle
-    start: (x, y) tuple or array-like
-    goal:  (x, y) tuple or array-like
+    grid[i, j]:
+      - i = row index
+      - j = column index
 
-    Coordinates are interpreted as (x, y) where:
-      - x is column index in [0, N-1]
-      - y is row index in [0, N-1]
+    So any point [i, j] refers to the same cell as maze[i, j] or maze[i][j].
+
+    grid: 2D np.array
+      - 0 = free
+      - 1 = obstacle
+
+    start, goal:
+      - length-2 coordinates in [i, j] format
+
+    path:
+      - (K, 2) array of [i, j] coordinates
     """
 
     def __init__(
@@ -26,12 +37,12 @@ class MazePlotter:
         title: str = "Grid Maze",
     ):
         self.grid = np.asarray(grid)
-        if self.grid.ndim != 2 or self.grid.shape[0] != self.grid.shape[1]:
-            raise ValueError("grid must be a 2D square array (N x N).")
-        self.N = self.grid.shape[0]
+        if self.grid.ndim != 2:
+            raise ValueError("grid must be a 2D array.")
+        self.n_rows, self.n_cols = self.grid.shape
 
-        self.start = self._to_xy(start, name="start")
-        self.goal = self._to_xy(goal, name="goal")
+        self.start = self._to_ij(start, name="start")
+        self.goal = self._to_ij(goal, name="goal")
 
         self.live = bool(live)
         self.title = title
@@ -39,7 +50,6 @@ class MazePlotter:
         self.fig, self.ax = plt.subplots(figsize=(cell_size, cell_size))
         self._setup_base_plot()
 
-        # Plot initial items
         self._draw_start_goal()
         if path is not None:
             self.plot_path(path, color="blue", linewidth=2.5, markersize=3, label="path")
@@ -65,13 +75,14 @@ class MazePlotter:
         zorder: int = 5,
     ):
         """
-        Plot a path (K x 2) of (x, y) coords.
-        In live mode this updates immediately.
+        Plot a path given as (K, 2) array of [i, j] coords.
         """
         pts = self._validate_path(path)
+        x, y = self._ij_to_xy(pts)
+
         (line,) = self.ax.plot(
-            pts[:, 0],
-            pts[:, 1],
+            x,
+            y,
             color=color,
             linewidth=linewidth,
             marker="o" if markersize > 0 else None,
@@ -92,50 +103,74 @@ class MazePlotter:
         alpha: float = 1.0,
         label: str | None = None,
         zorder: int = 6,
+        edgecolor: str | None = None,
     ):
         """
-        Live overlay helper.
+        Add overlay using [i, j] coordinates.
 
-        coords: (K, 2) array of (x, y)
         kind:
-          - "line"  : connect points with lines
-          - "scatter": scatter points
+          - "line"
+          - "scatter"
           - "points" : alias for scatter
-
-        Returns the created artist.
+          - "cells"
+          - "fill"   : alias for cells
         """
         pts = self._validate_path(coords)
+        x, y = self._ij_to_xy(pts)
 
         kind = kind.lower()
+
         if kind in ("scatter", "points"):
             artist = self.ax.scatter(
-                pts[:, 0], pts[:, 1],
+                x,
+                y,
                 s=markersize**2 / 2.0,
                 c=color,
                 alpha=alpha,
                 label=label,
                 zorder=zorder,
             )
+
         elif kind == "line":
             (artist,) = self.ax.plot(
-                pts[:, 0], pts[:, 1],
+                x,
+                y,
                 color=color,
                 linewidth=linewidth,
                 alpha=alpha,
                 label=label,
                 zorder=zorder,
             )
+
+        elif kind in ("cells", "fill"):
+            patches = []
+            for i, j in pts:
+                # cell centered at (j, i), so lower-left corner is (j-0.5, i-0.5)
+                rect = Rectangle((j - 0.5, i - 0.5), 1.0, 1.0)
+                patches.append(rect)
+
+            artist = PatchCollection(
+                patches,
+                facecolor=color,
+                edgecolor=edgecolor if edgecolor is not None else "none",
+                linewidth=linewidth,
+                alpha=alpha,
+                zorder=zorder,
+            )
+
+            if label is not None:
+                artist.set_label(label)
+
+            self.ax.add_collection(artist)
+
         else:
-            raise ValueError("kind must be one of: 'line', 'scatter', 'points'.")
+            raise ValueError("kind must be one of: 'line', 'scatter', 'points', 'cells', 'fill'.")
 
         self._refresh()
         return artist
 
     def clear_overlays(self, keep_start_goal: bool = True):
-        """
-        Remove plotted overlays (paths/scatters). Optionally keep start/goal.
-        """
-        # Wipe axis and redraw base
+        """Remove overlays and redraw the base maze."""
         self.ax.cla()
         self._setup_base_plot()
         if keep_start_goal:
@@ -143,12 +178,10 @@ class MazePlotter:
         self._refresh()
 
     def update_grid(self, new_grid: np.ndarray, redraw: bool = True):
-        """
-        Replace the grid. If redraw=True, it refreshes the plot.
-        """
+        """Replace the grid and optionally redraw."""
         new_grid = np.asarray(new_grid)
-        if new_grid.shape != (self.N, self.N):
-            raise ValueError(f"new_grid must have shape {(self.N, self.N)}")
+        if new_grid.shape != (self.n_rows, self.n_cols):
+            raise ValueError(f"new_grid must have shape {(self.n_rows, self.n_cols)}")
         self.grid = new_grid
         if redraw:
             self.clear_overlays(keep_start_goal=True)
@@ -156,10 +189,8 @@ class MazePlotter:
     # ---------- internal helpers ----------
 
     def _setup_base_plot(self):
-        # Colormap: free=white, obstacle=black
         cmap = ListedColormap(["white", "black"])
 
-        # Use origin="lower" so y increases upward like standard Cartesian coords
         self.ax.imshow(
             self.grid,
             cmap=cmap,
@@ -167,58 +198,75 @@ class MazePlotter:
             interpolation="none",
             vmin=0,
             vmax=1,
-            extent=(-0.5, self.N - 0.5, -0.5, self.N - 0.5),
+            extent=(-0.5, self.n_cols - 0.5, -0.5, self.n_rows - 0.5),
             zorder=0,
         )
 
-        # Grid lines at cell boundaries
-        self.ax.set_xticks(np.arange(-0.5, self.N, 1), minor=True)
-        self.ax.set_yticks(np.arange(-0.5, self.N, 1), minor=True)
+        self.ax.set_xticks(np.arange(-0.5, self.n_cols, 1), minor=True)
+        self.ax.set_yticks(np.arange(-0.5, self.n_rows, 1), minor=True)
         self.ax.grid(which="minor", linestyle="-", linewidth=0.6, alpha=0.35)
 
-        # Major ticks centered on cells (0..N-1)
-        self.ax.set_xticks(np.arange(0, self.N, 1))
-        self.ax.set_yticks(np.arange(0, self.N, 1))
+        self.ax.set_xticks(np.arange(0, self.n_cols, 1))
+        self.ax.set_yticks(np.arange(0, self.n_rows, 1))
 
-        self.ax.set_xlim(-0.5, self.N - 0.5)
-        self.ax.set_ylim(-0.5, self.N - 0.5)
+        self.ax.set_xlim(-0.5, self.n_cols - 0.5)
+        self.ax.set_ylim(-0.5, self.n_rows - 0.5)
         self.ax.set_aspect("equal")
         self.ax.set_title(self.title)
-        self.ax.set_xlabel("x")
-        self.ax.set_ylabel("y")
+        self.ax.set_xlabel("j (column)")
+        self.ax.set_ylabel("i (row)")
 
     def _draw_start_goal(self):
-        sx, sy = self.start
-        gx, gy = self.goal
+        si, sj = self.start
+        gi, gj = self.goal
 
-        # Start: green, Goal: red
-        self.ax.scatter([sx], [sy], s=120, c="green", edgecolors="k", linewidths=0.8, zorder=10, label="start")
-        self.ax.scatter([gx], [gy], s=120, c="red",   edgecolors="k", linewidths=0.8, zorder=10, label="goal")
+        self.ax.scatter(
+            [sj], [si],
+            s=120, c="green", edgecolors="k",
+            linewidths=0.8, zorder=10, label="start"
+        )
+        self.ax.scatter(
+            [gj], [gi],
+            s=120, c="red", edgecolors="k",
+            linewidths=0.8, zorder=10, label="goal"
+        )
 
-    def _to_xy(self, pt, name="point"):
+    def _to_ij(self, pt, name="point"):
         arr = np.asarray(pt).reshape(-1)
         if arr.size != 2:
-            raise ValueError(f"{name} must be length-2 (x, y).")
-        x, y = int(arr[0]), int(arr[1])
-        self._check_in_bounds(x, y, name=name)
-        return (x, y)
+            raise ValueError(f"{name} must be length-2 [i, j].")
+        i, j = int(arr[0]), int(arr[1])
+        self._check_in_bounds(i, j, name=name)
+        return (i, j)
 
-    def _check_in_bounds(self, x: int, y: int, name="coord"):
-        if not (0 <= x < self.N and 0 <= y < self.N):
-            raise ValueError(f"{name} ({x}, {y}) out of bounds for N={self.N}.")
+    def _check_in_bounds(self, i: int, j: int, name="coord"):
+        if not (0 <= i < self.n_rows and 0 <= j < self.n_cols):
+            raise ValueError(
+                f"{name} [{i}, {j}] out of bounds for grid shape {self.grid.shape}."
+            )
 
     def _validate_path(self, path: np.ndarray):
         pts = np.asarray(path)
         if pts.ndim != 2 or pts.shape[1] != 2:
-            raise ValueError("path/coords must be a (K, 2) array of (x, y).")
-        # Coerce to float for plotting, but validate bounds as ints
-        for i, (x, y) in enumerate(pts):
-            xi, yi = int(x), int(y)
-            self._check_in_bounds(xi, yi, name=f"coords[{i}]")
+            raise ValueError("path/coords must be a (K, 2) array of [i, j].")
+
+        for k, (i, j) in enumerate(pts):
+            ii, jj = int(i), int(j)
+            self._check_in_bounds(ii, jj, name=f"coords[{k}]")
+
         return pts.astype(float)
 
+    def _ij_to_xy(self, pts: np.ndarray):
+        """
+        Convert array of [i, j] points into plotting coordinates:
+          x = j
+          y = i
+        """
+        x = pts[:, 1]
+        y = pts[:, 0]
+        return x, y
+
     def _finalize_show(self):
-        # Nice legend if labels exist
         handles, labels = self.ax.get_legend_handles_labels()
         if labels:
             self.ax.legend(loc="upper right", framealpha=0.9)
@@ -227,37 +275,58 @@ class MazePlotter:
             plt.ion()
             plt.show(block=False)
             self._refresh()
-        else:
-            # In non-live mode, don't auto-block here; user can call show()
-            pass
 
     def _refresh(self):
-        # Redraw immediately if live
         if self.live:
             self.fig.canvas.draw_idle()
             self.fig.canvas.flush_events()
             plt.pause(0.001)
 
-if __name__ == "__main__":
 
-    N = 10
-    grid = np.zeros((N, N), dtype=int)
+if __name__ == "__main__":
+    n = 10
+    grid = np.zeros((n, n), dtype=int)
+
+    # obstacle at grid[i, j]
     grid[3:8, 4] = 1
 
-    start = (0, 0)
-    goal = (9, 9)
+    start = (0, 0)   # [i, j]
+    goal = (9, 9)    # [i, j]
 
-    path = np.array(
-        [[0, 0], [1, 0], [2, 0], [3, 0], [4, 1], [5, 2], [6, 3], [7, 4], [8, 5], [9, 6],
-         [9, 7], [9, 8], [9, 9]])
+    # Path is now explicitly [i, j]
+    path = np.array([
+        [0, 0],
+        [0, 1],
+        [0, 2],
+        [0, 3],
+        [1, 4],
+        [2, 5],
+        [3, 6],
+        [4, 7],
+        [5, 8],
+        [6, 9],
+        [7, 9],
+        [8, 9],
+        [9, 9],
+    ])
 
-    mp = MazePlotter(grid, start, goal, path=path, live=True, title="My Maze")
+    mp = MazePlotter(grid, start, goal, path=path, live=True, title="Maze ([i, j] indexing)")
     mp.show()
 
-    # Later: update live with a new overlay in purple
-    new_segment = np.array([[3, 3], [4, 3], [5, 3], [6, 3]])
+    # Another line overlay in [i, j]
+    new_segment = np.array([
+        [3, 3],
+        [3, 4],
+        [3, 5],
+        [3, 6],
+    ])
     mp.add_overlay(new_segment, color="purple", kind="line", linewidth=3)
 
-    # Or scatter explored nodes in orange
-    explored = np.array([[1, 1], [1, 2], [2, 2], [3, 2]])
+    # Scatter explored nodes in [i, j]
+    explored = np.array([
+        [1, 1],
+        [2, 1],
+        [2, 2],
+        [2, 3],
+    ])
     mp.add_overlay(explored, color="orange", kind="scatter", markersize=5)
