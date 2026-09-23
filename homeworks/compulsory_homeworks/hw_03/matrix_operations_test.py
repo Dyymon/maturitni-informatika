@@ -5,7 +5,7 @@ from copy import deepcopy
 
 import numpy as np
 
-from homeworks.compulsory_homeworks.hw_01.matrix_operations import add_matrix, \
+from homeworks.compulsory_homeworks.hw_03.matrix_operations import add_matrix, \
     multiply_matrix, solve
 
 

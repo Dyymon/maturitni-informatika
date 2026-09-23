@@ -1,7 +1,7 @@
 import unittest
 import random
 
-from homeworks.compulsory_homeworks.hw_02.sort import find_minimum, find_maximum, sort_numbers
+from homeworks.compulsory_homeworks.hw_04.sort import find_minimum, find_maximum, sort_numbers
 
 
 class TestMatrixOperations(unittest.TestCase):
