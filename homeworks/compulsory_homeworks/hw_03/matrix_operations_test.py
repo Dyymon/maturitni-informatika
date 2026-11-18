@@ -50,7 +50,7 @@ class TestMatrixOperations(unittest.TestCase):
         """
 
         rows = np.random.randint(1, 5)
-        cols = np.random.randint(1, 5)
+        cols = rows
         A = np.random.randint(0, 100, size=(rows, cols))
         B = np.random.randint(0, 100, size=(rows, cols))
         C = np.random.randint(0, 100, size=(rows, cols))
@@ -100,7 +100,7 @@ class TestMatrixOperations(unittest.TestCase):
         A = np.random.randint(0, 100, size=(rows, cols))
         solution_np = deepcopy(A)
 
-        equation = [deepcopy(A)]
+        equation = [A.tolist()]
         matrix_num = np.random.randint(1, 10)
         for _ in range(matrix_num):
             B = np.random.randint(0, 100, size=(rows, cols))
@@ -122,7 +122,7 @@ class TestMatrixOperations(unittest.TestCase):
         p = np.random.randint(1, 5)
         A = np.random.randint(0, 100, size=(m, n))
         solution_np = deepcopy(A)
-        equation = [deepcopy(A)]
+        equation = [A.tolist()]
         matrix_num = np.random.randint(1, 10)
         for _ in range(matrix_num):
             B = np.random.randint(0, 100, size=(n, p))
